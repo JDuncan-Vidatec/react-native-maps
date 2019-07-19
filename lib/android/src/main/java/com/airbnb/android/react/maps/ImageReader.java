@@ -23,8 +23,8 @@ import com.facebook.imagepipeline.image.CloseableStaticBitmap;
 import com.facebook.imagepipeline.image.ImageInfo;
 import com.facebook.imagepipeline.request.ImageRequest;
 import com.facebook.imagepipeline.request.ImageRequestBuilder;
-import com.google.android.gms.maps.model.BitmapDescriptor;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.amazon.geo.mapsv2.model.BitmapDescriptor;
+import com.amazon.geo.mapsv2.model.BitmapDescriptorFactory;
 
 import javax.annotation.Nullable;
 

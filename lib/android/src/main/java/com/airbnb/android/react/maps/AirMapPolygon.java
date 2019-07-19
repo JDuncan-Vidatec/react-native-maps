@@ -4,10 +4,10 @@ import android.content.Context;
 
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Polygon;
-import com.google.android.gms.maps.model.PolygonOptions;
+import com.amazon.geo.mapsv2.AmazonMap;
+import com.amazon.geo.mapsv2.model.LatLng;
+import com.amazon.geo.mapsv2.model.Polygon;
+import com.amazon.geo.mapsv2.model.PolygonOptions;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +16,7 @@ public class AirMapPolygon extends AirMapFeature {
 
   private PolygonOptions polygonOptions;
   private Polygon polygon;
+
 
   private List<LatLng> coordinates;
   private List<List<LatLng>> holes;
@@ -99,7 +100,7 @@ public class AirMapPolygon extends AirMapFeature {
   public void setTappable(boolean tapabble) {
     this.tappable = tapabble;
     if (polygon != null) {
-      polygon.setClickable(tappable);
+//      polygon.setClickable(tappable);
     }
   }
 
@@ -113,7 +114,7 @@ public class AirMapPolygon extends AirMapFeature {
   public void setZIndex(float zIndex) {
     this.zIndex = zIndex;
     if (polygon != null) {
-      polygon.setZIndex(zIndex);
+//      polygon.setZIndex(zIndex);
     }
   }
 
@@ -148,13 +149,13 @@ public class AirMapPolygon extends AirMapFeature {
   }
 
   @Override
-  public void addToMap(GoogleMap map) {
+  public void addToMap(AmazonMap map) {
     polygon = map.addPolygon(getPolygonOptions());
-    polygon.setClickable(this.tappable);
+//    polygon.setClickable(this.tappable);
   }
 
   @Override
-  public void removeFromMap(GoogleMap map) {
+  public void removeFromMap(AmazonMap map) {
     polygon.remove();
   }
 }

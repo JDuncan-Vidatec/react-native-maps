@@ -2,10 +2,10 @@ package com.airbnb.android.react.maps;
 
 import android.content.Context;
 
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.model.Circle;
-import com.google.android.gms.maps.model.CircleOptions;
-import com.google.android.gms.maps.model.LatLng;
+import com.amazon.geo.mapsv2.AmazonMap;
+import com.amazon.geo.mapsv2.model.Circle;
+import com.amazon.geo.mapsv2.model.CircleOptions;
+import com.amazon.geo.mapsv2.model.LatLng;
 
 public class AirMapCircle extends AirMapFeature {
 
@@ -89,12 +89,12 @@ public class AirMapCircle extends AirMapFeature {
   }
 
   @Override
-  public void addToMap(GoogleMap map) {
+  public void addToMap(AmazonMap map) {
     circle = map.addCircle(getCircleOptions());
   }
 
   @Override
-  public void removeFromMap(GoogleMap map) {
+  public void removeFromMap(AmazonMap map) {
     circle.remove();
   }
 }

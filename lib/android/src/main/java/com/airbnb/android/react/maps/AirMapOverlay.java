@@ -5,13 +5,13 @@ import android.graphics.Bitmap;
 
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.model.BitmapDescriptor;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.GroundOverlay;
-import com.google.android.gms.maps.model.GroundOverlayOptions;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
+import com.amazon.geo.mapsv2.AmazonMap;
+import com.amazon.geo.mapsv2.model.BitmapDescriptor;
+import com.amazon.geo.mapsv2.model.BitmapDescriptorFactory;
+import com.amazon.geo.mapsv2.model.GroundOverlay;
+import com.amazon.geo.mapsv2.model.GroundOverlayOptions;
+import com.amazon.geo.mapsv2.model.LatLng;
+import com.amazon.geo.mapsv2.model.LatLngBounds;
 
 import java.util.ArrayList;
 
@@ -26,7 +26,7 @@ public class AirMapOverlay extends AirMapFeature implements ImageReadable {
   private float transparency;
 
   private final ImageReader mImageReader;
-  private GoogleMap map;
+  private AmazonMap map;
 
   public AirMapOverlay(Context context) {
     super(context);
@@ -88,18 +88,18 @@ public class AirMapOverlay extends AirMapFeature implements ImageReadable {
   }
 
   @Override
-  public void addToMap(GoogleMap map) {
+  public void addToMap(AmazonMap map) {
     GroundOverlayOptions groundOverlayOptions = getGroundOverlayOptions();
     if (groundOverlayOptions != null) {
       this.groundOverlay = map.addGroundOverlay(groundOverlayOptions);
-      this.groundOverlay.setClickable(true);
+//      this.groundOverlay.setClickable(true);
     } else {
       this.map = map;
     }
   }
 
   @Override
-  public void removeFromMap(GoogleMap map) {
+  public void removeFromMap(AmazonMap map) {
     this.map = null;
     if (this.groundOverlay != null) {
       this.groundOverlay.remove();
@@ -124,7 +124,7 @@ public class AirMapOverlay extends AirMapFeature implements ImageReadable {
     this.groundOverlay = getGroundOverlay();
     if (this.groundOverlay != null) {
       this.groundOverlay.setImage(this.iconBitmapDescriptor);
-      this.groundOverlay.setClickable(true);
+//      this.groundOverlay.setClickable(true);
     }
   }
 

@@ -31,12 +31,12 @@ import com.facebook.imagepipeline.image.ImageInfo;
 import com.facebook.imagepipeline.request.ImageRequest;
 import com.facebook.imagepipeline.request.ImageRequestBuilder;
 import com.facebook.react.bridge.ReadableMap;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.model.BitmapDescriptor;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
+import com.amazon.geo.mapsv2.AmazonMap;
+import com.amazon.geo.mapsv2.model.BitmapDescriptor;
+import com.amazon.geo.mapsv2.model.BitmapDescriptorFactory;
+import com.amazon.geo.mapsv2.model.LatLng;
+import com.amazon.geo.mapsv2.model.Marker;
+import com.amazon.geo.mapsv2.model.MarkerOptions;
 
 import javax.annotation.Nullable;
 
@@ -135,7 +135,7 @@ public class AirMapMarker extends AirMapFeature {
     setRotation(options.getRotation());
     setFlat(options.isFlat());
     setDraggable(options.isDraggable());
-    setZIndex(Math.round(options.getZIndex()));
+//    setZIndex(Math.round(options.getZIndex()));
     setAlpha(options.getAlpha());
     iconBitmapDescriptor = options.getIcon();
   }
@@ -207,7 +207,7 @@ public class AirMapMarker extends AirMapFeature {
   public void setZIndex(int zIndex) {
     this.zIndex = zIndex;
     if (marker != null) {
-      marker.setZIndex(zIndex);
+//      marker.setZIndex(zIndex);
     }
     update(false);
   }
@@ -390,13 +390,13 @@ public class AirMapMarker extends AirMapFeature {
   }
 
   @Override
-  public void addToMap(GoogleMap map) {
+  public void addToMap(AmazonMap map) {
     marker = map.addMarker(getMarkerOptions());
     updateTracksViewChanges();
   }
 
   @Override
-  public void removeFromMap(GoogleMap map) {
+  public void removeFromMap(AmazonMap map) {
     marker.remove();
     marker = null;
     updateTracksViewChanges();
@@ -435,7 +435,7 @@ public class AirMapMarker extends AirMapFeature {
     options.rotation(rotation);
     options.flat(flat);
     options.draggable(draggable);
-    options.zIndex(zIndex);
+//    options.zIndex(zIndex);
     options.alpha(opacity);
     options.icon(getIcon());
     return options;

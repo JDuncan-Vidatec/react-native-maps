@@ -2,11 +2,11 @@ package com.airbnb.android.react.maps;
 
 import android.content.Context;
 
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.model.Tile;
-import com.google.android.gms.maps.model.TileOverlay;
-import com.google.android.gms.maps.model.TileOverlayOptions;
-import com.google.android.gms.maps.model.TileProvider;
+import com.amazon.geo.mapsv2.AmazonMap;
+import com.amazon.geo.mapsv2.model.Tile;
+import com.amazon.geo.mapsv2.model.TileOverlay;
+import com.amazon.geo.mapsv2.model.TileOverlayOptions;
+import com.amazon.geo.mapsv2.model.TileProvider;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -137,12 +137,12 @@ public class AirMapLocalTile extends AirMapFeature {
     }
 
     @Override
-    public void addToMap(GoogleMap map) {
+    public void addToMap(AmazonMap map) {
         this.tileOverlay = map.addTileOverlay(getTileOverlayOptions());
     }
 
     @Override
-    public void removeFromMap(GoogleMap map) {
+    public void removeFromMap(AmazonMap map) {
         tileOverlay.remove();
     }
 }

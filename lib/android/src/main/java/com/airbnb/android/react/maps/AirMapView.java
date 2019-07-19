@@ -11,6 +11,7 @@ import android.graphics.Rect;
 import android.os.Build;
 import android.support.v4.view.GestureDetectorCompat;
 import android.support.v4.view.MotionEventCompat;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
@@ -33,29 +34,27 @@ import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.UIManagerModule;
 import com.facebook.react.uimanager.ViewProps;
 import com.facebook.react.uimanager.events.EventDispatcher;
-import com.google.android.gms.maps.CameraUpdate;
-import com.google.android.gms.maps.CameraUpdateFactory;
+import com.amazon.geo.mapsv2.CameraUpdate;
+import com.amazon.geo.mapsv2.CameraUpdateFactory;
+import com.amazon.geo.mapsv2.AmazonMap;
+import com.amazon.geo.mapsv2.AmazonMapOptions;
+import com.amazon.geo.mapsv2.MapView;
+import com.amazon.geo.mapsv2.OnMapReadyCallback;
+import com.amazon.geo.mapsv2.Projection;
+import com.amazon.geo.mapsv2.model.BitmapDescriptorFactory;
+import com.amazon.geo.mapsv2.model.CameraPosition;
+import com.amazon.geo.mapsv2.model.LatLng;
+import com.amazon.geo.mapsv2.model.LatLngBounds;
+import com.amazon.geo.mapsv2.model.Marker;
+import com.amazon.geo.mapsv2.model.MarkerOptions;
+//import com.amazon.geo.mapsv2.model.PointOfInterest;
+import com.amazon.geo.mapsv2.model.Polygon;
+import com.amazon.geo.mapsv2.model.Polyline;
+import com.amazon.geo.mapsv2.model.VisibleRegion;
+import com.amazon.geo.mapsv2.model.IndoorBuilding;
+import com.amazon.geo.mapsv2.model.IndoorLevel;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.GoogleMapOptions;
-import com.google.android.gms.maps.MapView;
-import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.Projection;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.CameraPosition;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PointOfInterest;
-import com.google.android.gms.maps.model.Polygon;
-import com.google.android.gms.maps.model.Polyline;
-import com.google.android.gms.maps.model.VisibleRegion;
-import com.google.android.gms.maps.model.IndoorBuilding;
-import com.google.android.gms.maps.model.IndoorLevel;
-import com.google.maps.android.data.kml.KmlContainer;
-import com.google.maps.android.data.kml.KmlLayer;
-import com.google.maps.android.data.kml.KmlPlacemark;
-import com.google.maps.android.data.kml.KmlStyle;
 
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -70,10 +69,9 @@ import java.util.concurrent.ExecutionException;
 
 import static android.support.v4.content.PermissionChecker.checkSelfPermission;
 
-public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
-    GoogleMap.OnMarkerDragListener, OnMapReadyCallback, GoogleMap.OnPoiClickListener, GoogleMap.OnIndoorStateChangeListener {
-  public GoogleMap map;
-  private KmlLayer kmlLayer;
+public class AirMapView extends MapView implements AmazonMap.InfoWindowAdapter,
+    AmazonMap.OnMarkerDragListener, OnMapReadyCallback, GoogleMap.OnPoiClickListener, GoogleMap.OnIndoorStateChangeListener, AmazonMap.OnIndoorStateChangeListener {
+  public AmazonMap map;
   private ProgressBar mapLoadingProgressBar;
   private RelativeLayout mapLoadingLayout;
   private ImageView cacheImageView;
@@ -143,7 +141,7 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
 
   public AirMapView(ThemedReactContext reactContext, ReactApplicationContext appContext,
       AirMapManager manager,
-      GoogleMapOptions googleMapOptions) {
+      AmazonMapOptions googleMapOptions) {
     super(getNonBuggyContext(reactContext, appContext), googleMapOptions);
 
     this.manager = manager;
@@ -193,21 +191,21 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
   }
 
   @Override
-  public void onMapReady(final GoogleMap map) {
+  public void onMapReady(final AmazonMap map) {
     if (destroyed) {
       return;
     }
     this.map = map;
     this.map.setInfoWindowAdapter(this);
     this.map.setOnMarkerDragListener(this);
-    this.map.setOnPoiClickListener(this);
+//    this.map.setOnPoiClickListener(this);
     this.map.setOnIndoorStateChangeListener(this);
 
     manager.pushEvent(context, this, "onMapReady", new WritableNativeMap());
 
     final AirMapView view = this;
 
-    map.setOnMyLocationChangeListener(new GoogleMap.OnMyLocationChangeListener() {
+    map.setOnMyLocationChangeListener(new AmazonMap.OnMyLocationChangeListener() {
       @Override
       public void onMyLocationChange(Location location){
         WritableMap event = new WritableNativeMap();
@@ -229,7 +227,7 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
       }
     });
 
-    map.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+    map.setOnMarkerClickListener(new AmazonMap.OnMarkerClickListener() {
       @Override
       public boolean onMarkerClick(Marker marker) {
         WritableMap event;
@@ -246,7 +244,7 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
         manager.pushEvent(context, airMapMarker, "onPress", event);
 
         // Return false to open the callout info window and center on the marker
-        // https://developers.google.com/android/reference/com/google/android/gms/maps/GoogleMap
+        // https://developers.google.com/android/reference/com/google/android/gms/maps/AmazonMap
         // .OnMarkerClickListener
         if (view.moveOnMarkerPress) {
           return false;
@@ -257,25 +255,25 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
       }
     });
 
-    map.setOnPolygonClickListener(new GoogleMap.OnPolygonClickListener() {
-      @Override
-      public void onPolygonClick(Polygon polygon) {
-        WritableMap event = makeClickEventData(polygon.getPoints().get(0));
-        event.putString("action", "polygon-press");
-        manager.pushEvent(context, polygonMap.get(polygon), "onPress", event);
-      }
-    });
+//    map.setOnPolygonClickListener(new AmazonMap.OnPolygonClickListener() {
+//      @Override
+//      public void onPolygonClick(Polygon polygon) {
+//        WritableMap event = makeClickEventData(polygon.getPoints().get(0));
+//        event.putString("action", "polygon-press");
+//        manager.pushEvent(context, polygonMap.get(polygon), "onPress", event);
+//      }
+//    });
+//
+//    map.setOnPolylineClickListener(new AmazonMap.OnPolylineClickListener() {
+//      @Override
+//      public void onPolylineClick(Polyline polyline) {
+//        WritableMap event = makeClickEventData(polyline.getPoints().get(0));
+//        event.putString("action", "polyline-press");
+//        manager.pushEvent(context, polylineMap.get(polyline), "onPress", event);
+//      }
+//    });
 
-    map.setOnPolylineClickListener(new GoogleMap.OnPolylineClickListener() {
-      @Override
-      public void onPolylineClick(Polyline polyline) {
-        WritableMap event = makeClickEventData(polyline.getPoints().get(0));
-        event.putString("action", "polyline-press");
-        manager.pushEvent(context, polylineMap.get(polyline), "onPress", event);
-      }
-    });
-
-    map.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+    map.setOnInfoWindowClickListener(new AmazonMap.OnInfoWindowClickListener() {
       @Override
       public void onInfoWindowClick(Marker marker) {
         WritableMap event;
@@ -296,7 +294,7 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
       }
     });
 
-    map.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+    map.setOnMapClickListener(new AmazonMap.OnMapClickListener() {
       @Override
       public void onMapClick(LatLng point) {
         WritableMap event = makeClickEventData(point);
@@ -305,7 +303,7 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
       }
     });
 
-    map.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
+    map.setOnMapLongClickListener(new AmazonMap.OnMapLongClickListener() {
       @Override
       public void onMapLongClick(LatLng point) {
         WritableMap event = makeClickEventData(point);
@@ -314,36 +312,48 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
       }
     });
 
-    map.setOnCameraMoveStartedListener(new GoogleMap.OnCameraMoveStartedListener() {
-      @Override
-      public void onCameraMoveStarted(int reason) {
-        cameraMoveReason = reason;
-      }
-    });
+//    map.setOnCameraMoveStartedListener(new AmazonMap.OnCameraMoveStartedListener() {
+//      @Override
+//      public void onCameraMoveStarted(int reason) {
+//        cameraMoveReason = reason;
+//      }
+//    });
+//
+//    map.setOnCameraMoveListener(new AmazonMap.OnCameraMoveListener() {
+//      @Override
+//      public void onCameraMove() {
+//        LatLngBounds bounds = map.getProjection().getVisibleRegion().latLngBounds;
+//        cameraLastIdleBounds = null;
+//        eventDispatcher.dispatchEvent(new RegionChangeEvent(getId(), bounds, true));
+//      }
+//    });
 
-    map.setOnCameraMoveListener(new GoogleMap.OnCameraMoveListener() {
+    map.setOnCameraChangeListener(new AmazonMap.OnCameraChangeListener() {
       @Override
-      public void onCameraMove() {
+      public void onCameraChange(CameraPosition cameraPosition) {
+        Log.i("!!!!!", cameraPosition.toString());
         LatLngBounds bounds = map.getProjection().getVisibleRegion().latLngBounds;
         cameraLastIdleBounds = null;
-        eventDispatcher.dispatchEvent(new RegionChangeEvent(getId(), bounds, true));
+        eventDispatcher.dispatchEvent(new RegionChangeEvent(getId(), bounds, false));
       }
     });
 
-    map.setOnCameraIdleListener(new GoogleMap.OnCameraIdleListener() {
-      @Override
-      public void onCameraIdle() {
-        LatLngBounds bounds = map.getProjection().getVisibleRegion().latLngBounds;
-        if ((cameraMoveReason != 0) &&
-          ((cameraLastIdleBounds == null) ||
-            LatLngBoundsUtils.BoundsAreDifferent(bounds, cameraLastIdleBounds))) {
-          cameraLastIdleBounds = bounds;
-          eventDispatcher.dispatchEvent(new RegionChangeEvent(getId(), bounds, false));
-        }
-      }
-    });
+//    map.lis
 
-    map.setOnMapLoadedCallback(new GoogleMap.OnMapLoadedCallback() {
+//    map.setOnCameraIdleListener(new AmazonMap.OnCameraIdleListener() {
+//      @Override
+//      public void onCameraIdle() {
+//        LatLngBounds bounds = map.getProjection().getVisibleRegion().latLngBounds;
+//        if ((cameraMoveReason != 0) &&
+//          ((cameraLastIdleBounds == null) ||
+//            LatLngBoundsUtils.BoundsAreDifferent(bounds, cameraLastIdleBounds))) {
+//          cameraLastIdleBounds = bounds;
+//          eventDispatcher.dispatchEvent(new RegionChangeEvent(getId(), bounds, false));
+//        }
+//      }
+//    });
+
+    map.setOnMapLoadedCallback(new AmazonMap.OnMapLoadedCallback() {
       @Override public void onMapLoaded() {
         isMapLoaded = true;
         AirMapView.this.cacheView();
@@ -454,7 +464,7 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
       map.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lat, lng), 10));
       boundsToMove = bounds;
     } else {
-      map.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 0));
+      map.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100, 100, 10));
       boundsToMove = null;
     }
   }
@@ -883,7 +893,9 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
 
     LatLngBounds bounds = builder.build();
 
-    map.setLatLngBoundsForCameraTarget(bounds);
+    map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 10));
+
+//    map.setLatLngBoundsForCameraTarget(bounds);
   }
 
   // InfoWindowAdapter interface
@@ -952,12 +964,13 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
 
   @Override
   public void onPoiClick(PointOfInterest poi) {
-    WritableMap event = makeClickEventData(poi.latLng);
-
-    event.putString("placeId", poi.placeId);
-    event.putString("name", poi.name);
-
-    manager.pushEvent(context, this, "onPoiClick", event);
+//
+//    WritableMap event = makeClickEventData(poi.latLng);
+//
+//    event.putString("placeId", poi.placeId);
+//    event.putString("name", poi.name);
+//
+//    manager.pushEvent(context, this, "onPoiClick", event);
   }
 
   private ProgressBar getMapLoadingProgressBar() {
@@ -1030,7 +1043,7 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
       cacheImageView.setVisibility(View.INVISIBLE);
       mapLoadingLayout.setVisibility(View.VISIBLE);
       if (this.isMapLoaded) {
-        this.map.snapshot(new GoogleMap.SnapshotReadyCallback() {
+        this.map.snapshot(new AmazonMap.SnapshotReadyCallback() {
           @Override public void onSnapshotReady(Bitmap bitmap) {
             cacheImageView.setImageBitmap(bitmap);
             cacheImageView.setVisibility(View.VISIBLE);
@@ -1054,99 +1067,99 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
   }
 
   public void setKmlSrc(String kmlSrc) {
-    try {
-      InputStream kmlStream =  new FileUtil(context).execute(kmlSrc).get();
-
-      if (kmlStream == null) {
-        return;
-      }
-
-      kmlLayer = new KmlLayer(map, kmlStream, context);
-      kmlLayer.addLayerToMap();
-
-      WritableMap pointers = new WritableNativeMap();
-      WritableArray markers = new WritableNativeArray();
-
-      if (kmlLayer.getContainers() == null) {
-        manager.pushEvent(context, this, "onKmlReady", pointers);
-        return;
-      }
-
-      //Retrieve a nested container within the first container
-      KmlContainer container = kmlLayer.getContainers().iterator().next();
-      if (container == null || container.getContainers() == null) {
-        manager.pushEvent(context, this, "onKmlReady", pointers);
-        return;
-      }
-
-
-      if (container.getContainers().iterator().hasNext()) {
-        container = container.getContainers().iterator().next();
-      }
-
-      Integer index = 0;
-      for (KmlPlacemark placemark : container.getPlacemarks()) {
-        MarkerOptions options = new MarkerOptions();
-
-        if (placemark.getInlineStyle() != null) {
-          options = placemark.getMarkerOptions();
-        } else {
-          options.icon(BitmapDescriptorFactory.defaultMarker());
-        }
-
-        LatLng latLng = ((LatLng) placemark.getGeometry().getGeometryObject());
-        String title = "";
-        String snippet = "";
-
-        if (placemark.hasProperty("name")) {
-          title = placemark.getProperty("name");
-        }
-
-        if (placemark.hasProperty("description")) {
-          snippet = placemark.getProperty("description");
-        }
-
-        options.position(latLng);
-        options.title(title);
-        options.snippet(snippet);
-
-        AirMapMarker marker = new AirMapMarker(context, options);
-
-        if (placemark.getInlineStyle() != null
-            && placemark.getInlineStyle().getIconUrl() != null) {
-          marker.setImage(placemark.getInlineStyle().getIconUrl());
-        } else if (container.getStyle(placemark.getStyleId()) != null) {
-          KmlStyle style = container.getStyle(placemark.getStyleId());
-          marker.setImage(style.getIconUrl());
-        }
-
-        String identifier = title + " - " + index;
-
-        marker.setIdentifier(identifier);
-
-        addFeature(marker, index++);
-
-        WritableMap loadedMarker = makeClickEventData(latLng);
-        loadedMarker.putString("id", identifier);
-        loadedMarker.putString("title", title);
-        loadedMarker.putString("description", snippet);
-
-        markers.pushMap(loadedMarker);
-      }
-
-      pointers.putArray("markers", markers);
-
-      manager.pushEvent(context, this, "onKmlReady", pointers);
-
-    } catch (XmlPullParserException e) {
-      e.printStackTrace();
-    } catch (IOException e) {
-      e.printStackTrace();
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    } catch (ExecutionException e) {
-      e.printStackTrace();
-    }
+//    try {
+//      InputStream kmlStream =  new FileUtil(context).execute(kmlSrc).get();
+//
+//      if (kmlStream == null) {
+//        return;
+//      }
+//
+//      kmlLayer = new KmlLayer(map, kmlStream, context);
+//      kmlLayer.addLayerToMap();
+//
+//      WritableMap pointers = new WritableNativeMap();
+//      WritableArray markers = new WritableNativeArray();
+//
+//      if (kmlLayer.getContainers() == null) {
+//        manager.pushEvent(context, this, "onKmlReady", pointers);
+//        return;
+//      }
+//
+//      //Retrieve a nested container within the first container
+//      KmlContainer container = kmlLayer.getContainers().iterator().next();
+//      if (container == null || container.getContainers() == null) {
+//        manager.pushEvent(context, this, "onKmlReady", pointers);
+//        return;
+//      }
+//
+//
+//      if (container.getContainers().iterator().hasNext()) {
+//        container = container.getContainers().iterator().next();
+//      }
+//
+//      Integer index = 0;
+//      for (KmlPlacemark placemark : container.getPlacemarks()) {
+//        MarkerOptions options = new MarkerOptions();
+//
+//        if (placemark.getInlineStyle() != null) {
+//          options = placemark.getMarkerOptions();
+//        } else {
+//          options.icon(BitmapDescriptorFactory.defaultMarker());
+//        }
+//
+//        LatLng latLng = ((LatLng) placemark.getGeometry().getGeometryObject());
+//        String title = "";
+//        String snippet = "";
+//
+//        if (placemark.hasProperty("name")) {
+//          title = placemark.getProperty("name");
+//        }
+//
+//        if (placemark.hasProperty("description")) {
+//          snippet = placemark.getProperty("description");
+//        }
+//
+//        options.position(latLng);
+//        options.title(title);
+//        options.snippet(snippet);
+//
+//        AirMapMarker marker = new AirMapMarker(context, options);
+//
+//        if (placemark.getInlineStyle() != null
+//            && placemark.getInlineStyle().getIconUrl() != null) {
+//          marker.setImage(placemark.getInlineStyle().getIconUrl());
+//        } else if (container.getStyle(placemark.getStyleId()) != null) {
+//          KmlStyle style = container.getStyle(placemark.getStyleId());
+//          marker.setImage(style.getIconUrl());
+//        }
+//
+//        String identifier = title + " - " + index;
+//
+//        marker.setIdentifier(identifier);
+//
+//        addFeature(marker, index++);
+//
+//        WritableMap loadedMarker = makeClickEventData(latLng);
+//        loadedMarker.putString("id", identifier);
+//        loadedMarker.putString("title", title);
+//        loadedMarker.putString("description", snippet);
+//
+//        markers.pushMap(loadedMarker);
+//      }
+//
+//      pointers.putArray("markers", markers);
+//
+//      manager.pushEvent(context, this, "onKmlReady", pointers);
+//
+//    } catch (XmlPullParserException e) {
+//      e.printStackTrace();
+//    } catch (IOException e) {
+//      e.printStackTrace();
+//    } catch (InterruptedException e) {
+//      e.printStackTrace();
+//    } catch (ExecutionException e) {
+//      e.printStackTrace();
+//    }
   }
 
   @Override
@@ -1186,7 +1199,17 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
       manager.pushEvent(context, this, "onIndoorBuildingFocused", event);
     }
   }
-  
+
+  @Override
+  public void onIndoorLevelActivated(com.google.android.gms.maps.model.IndoorBuilding indoorBuilding) {
+
+  }
+
+  @Override
+  public void onIndoorBuildingsFocused() {
+
+  }
+
   @Override
   public void onIndoorLevelActivated(IndoorBuilding building) {
     if (building == null) {
@@ -1239,4 +1262,5 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
 
     return airMarker;
   }
+
 }

@@ -17,10 +17,10 @@ import com.facebook.react.bridge.WritableNativeMap;
 import com.facebook.react.uimanager.NativeViewHierarchyManager;
 import com.facebook.react.uimanager.UIBlock;
 import com.facebook.react.uimanager.UIManagerModule;
-import com.google.android.gms.maps.GoogleMap;
+import com.amazon.geo.mapsv2.AmazonMap;
 import com.google.android.gms.common.GoogleApiAvailability;
-import com.google.android.gms.maps.model.CameraPosition;
-import com.google.android.gms.maps.model.LatLng;
+import com.amazon.geo.mapsv2.model.CameraPosition;
+import com.amazon.geo.mapsv2.model.LatLng;
 
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
@@ -98,7 +98,7 @@ public class AirMapModule extends ReactContextBaseJavaModule {
           promise.reject("AirMapView.map is not valid");
           return;
         }
-        view.map.snapshot(new GoogleMap.SnapshotReadyCallback() {
+        view.map.snapshot(new AmazonMap.SnapshotReadyCallback() {
           public void onSnapshotReady(@Nullable Bitmap snapshot) {
 
             // Convert image to requested width/height if necessary

@@ -14,11 +14,11 @@ import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.ViewGroupManager;
 import com.facebook.react.uimanager.annotations.ReactProp;
 import com.facebook.react.uimanager.events.RCTEventEmitter;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.GoogleMapOptions;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.android.gms.maps.model.MapStyleOptions;
+import com.amazon.geo.mapsv2.AmazonMap;
+import com.amazon.geo.mapsv2.AmazonMapOptions;
+import com.amazon.geo.mapsv2.model.LatLng;
+import com.amazon.geo.mapsv2.model.LatLngBounds;
+//import com.amazon.geo.mapsv2.MapStyleOptions;
 import com.google.maps.android.data.kml.KmlLayer;
 
 import java.util.Map;
@@ -44,20 +44,20 @@ public class AirMapManager extends ViewGroupManager<AirMapView> {
 
 
   private final Map<String, Integer> MAP_TYPES = MapBuilder.of(
-      "standard", GoogleMap.MAP_TYPE_NORMAL,
-      "satellite", GoogleMap.MAP_TYPE_SATELLITE,
-      "hybrid", GoogleMap.MAP_TYPE_HYBRID,
-      "terrain", GoogleMap.MAP_TYPE_TERRAIN,
-      "none", GoogleMap.MAP_TYPE_NONE
+      "standard", AmazonMap.MAP_TYPE_NORMAL,
+      "satellite", AmazonMap.MAP_TYPE_SATELLITE,
+      "hybrid", AmazonMap.MAP_TYPE_HYBRID,
+      "terrain", AmazonMap.MAP_TYPE_TERRAIN,
+      "none", AmazonMap.MAP_TYPE_NONE
   );
 
   private final ReactApplicationContext appContext;
 
-  protected GoogleMapOptions googleMapOptions;
+  protected AmazonMapOptions googleMapOptions;
 
   public AirMapManager(ReactApplicationContext context) {
     this.appContext = context;
-    this.googleMapOptions = new GoogleMapOptions();
+    this.googleMapOptions = new AmazonMapOptions();
   }
 
   @Override
@@ -108,7 +108,7 @@ public class AirMapManager extends ViewGroupManager<AirMapView> {
 
   @ReactProp(name = "customMapStyleString")
   public void setMapStyle(AirMapView view, @Nullable String customMapStyleString) {
-    view.map.setMapStyle(new MapStyleOptions(customMapStyleString));
+//    view.map.setMapStyle(new MapStyleOptions(customMapStyleString));
   }
 
   @ReactProp(name = "mapPadding")
@@ -239,12 +239,12 @@ public class AirMapManager extends ViewGroupManager<AirMapView> {
 
   @ReactProp(name = "minZoomLevel")
   public void setMinZoomLevel(AirMapView view, float minZoomLevel) {
-    view.map.setMinZoomPreference(minZoomLevel);
+//    view.map.setMinZoomPreference(minZoomLevel);
   }
 
   @ReactProp(name = "maxZoomLevel")
   public void setMaxZoomLevel(AirMapView view, float maxZoomLevel) {
-    view.map.setMaxZoomPreference(maxZoomLevel);
+//    view.map.setMaxZoomPreference(maxZoomLevel);
   }
 
   @ReactProp(name = "kmlSrc")

@@ -1,7 +1,7 @@
 package com.airbnb.android.react.maps;
 
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
+import com.amazon.geo.mapsv2.model.LatLng;
+import com.amazon.geo.mapsv2.model.LatLngBounds;
 
 public class LatLngBoundsUtils {
   public static boolean BoundsAreDifferent(LatLngBounds a, LatLngBounds b) {
